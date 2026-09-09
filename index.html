@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="ru">
 <head>
@@ -8,33 +7,110 @@
 
 <style>
 *{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#fff4ea,#f2f7ff);color:#222}
+.wrap{max-width:760px;margin:auto;padding:16px}
+h1{text-align:center}
+.sub,.badge,.hint{text-align:center;color:#666}
+.box{background:#fff;border-radius:20px;padding:16px;margin:14px 0;box-shadow:0 4px 16px #0001}
+.title{text-align:center;font-size:22px;font-weight:700;margin:10px}
+select,input,button{width:100%;padding:13px;margin:6px 0;border-radius:14px;font-size:17px}
+select,input{border:1px solid #ddd}
+button{border:0;font-weight:700}
+.addBtn{background:#eee}
+.weightBtn{background:#dff5df}
+.alcoholBtn{background:#ffe0d2}
+.hidden{display:none!important}
+.today,.rank-row,.att-row{background:#f6f6f6;padding:10px;margin:7px 0;border-radius:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.toast{position:fixed;top:15px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:12px;border-radius:12px;opacity:0;z-index:1000}
+.toast.show{opacity:1}
+.modal{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;padding:20px;z-index:999}
+.card{background:#fff;border-radius:20px;padding:20px;max-width:420px;width:100%;text-align:center}
+.medal,.emoji{font-size:55px}
+.empty{text-align:center;color:#999;padding:10px}
+@media(max-width:600px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
 
-body{
-  margin:0;
-  font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;
-  background:linear-gradient(135deg,#fff4ea,#f2f7ff);
-  color:#222;
-}
+<body>
 
-.wrap{
-  max-width:760px;
-  margin:auto;
-  padding:16px;
-}
+<div id="toast" class="toast"></div>
 
-h1{
-  text-align:center;
-  font-size:30px;
-  margin:8px 0 2px;
-}
+<div id="resultModal" class="modal hidden">
+  <div class="card">
+    <div id="modalContent"></div>
+    <button data-close>Закрыть</button>
+  </div>
+</div>
 
-.sub{
-  text-align:center;
-  color:#777;
-  margin-bottom:10px;
-}
+<div class="wrap">
 
-.status{
-  text-align:center;
-  font-size:14px;
-  margin
+<h1>🦌 Олени и 😇 Умнички</h1>
+<div class="sub">Наша общая доска похудения и позора 😂</div>
+<div id="connectionBadge" class="badge">⏳ Подключение к общей базе...</div>
+
+<div class="box">
+  <div class="title">👩 Выбери себя</div>
+  <select id="girlSelect">
+    <option value="">Выбери своё имя</option>
+  </select>
+  <button id="addGirlBtn" class="addBtn">➕ Добавить участницу</button>
+</div>
+
+<div id="activeGirlLine" class="box hidden">
+
+  <div class="title">Сегодня отчитывается: <span id="activeGirl"></span></div>
+
+  <div id="todayWeight" class="today">Сегодня вес ещё не записан</div>
+  <div id="weightHint" class="hint"></div>
+
+  <form id="weightForm">
+    <div class="title">⚖️ Вес сегодня</div>
+    <input id="weightInput" type="number" step="0.1" placeholder="Например 63.4" required>
+    <button type="submit" class="weightBtn">⚖️ Записать вес</button>
+  </form>
+
+  <hr>
+
+  <form id="alcoholForm">
+    <div class="title">🍷 Алкоголь сегодня</div>
+    <input id="drinkInput" placeholder="Что пила?" required>
+    <input id="mlInput" type="number" placeholder="Сколько мл?" required>
+    <button type="submit" class="alcoholBtn">🍷 Записать преступление 😂</button>
+  </form>
+
+</div>
+
+<div class="box">
+
+  <div class="title">📅 Итоги недели</div>
+  <div id="weekLabel" class="hint"></div>
+
+  <div class="grid">
+
+    <div>
+      <div class="title">🏅 Умнички недели</div>
+      <div id="weightRanking"></div>
+    </div>
+
+    <div>
+      <div class="title">🍾 Алкаши недели</div>
+      <div id="alcoholRanking"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="box">
+  <div class="title">👀 Кто сегодня внёс вес</div>
+  <div id="attendance"></div>
+</div>
+
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
