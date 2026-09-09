@@ -1,142 +1,226 @@
-(() => {
-  const BASE = (window.DATABASE_URL || '').replace(/\/$/, '');
-  const $ = (id) => document.getElementById(id);
-  const state = { girls: {}, activeId: localStorage.getItem('ou_active_girl') || '' };
+const BASE=(window.DATABASE_URL||"").replace(/\/+$/,"");
+const $=id=>document.getElementById(id);
+let girls={},active=localStorage.getItem("girl")||"";
 
-  const esc = (s='') => String(s).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-  const slug = (s) => s.trim().toLowerCase().replace(/[^a-zа-яёіїєґ0-9]+/gi,'-').replace(/^-|-$/g,'') + '-' + Math.random().toString(36).slice(2,6);
-  const today = () => new Date().toLocaleDateString('sv-SE'); // YYYY-MM-DD locally
-  const monday = (d=new Date()) => { const x=new Date(d); const day=x.getDay()||7; x.setHours(0,0,0,0); x.setDate(x.getDate()-day+1); return x; };
-  const dateKey = (d) => d.toLocaleDateString('sv-SE');
-  const fmt = n => Number(n).toFixed(1).replace('.', ',');
-  const fmtDate = d => new Intl.DateTimeFormat('ru-RU',{day:'2-digit',month:'2-digit'}).format(d);
+const today=()=>new Date().toLocaleDateString("sv-SE");
+const fmt=n=>Number(n).toFixed(1).replace(".",",");
 
-  async function api(path, options={}) {
-    if (!BASE) throw new Error('Нет DATABASE_URL');
-    const res = await fetch(`${BASE}/${path}.json`, {headers:{'Content-Type':'application/json'}, ...options});
-    if (!res.ok) throw new Error(`Firebase: ${res.status}`);
-    return res.json();
-  }
-  const put = (path,data) => api(path,{method:'PUT',body:JSON.stringify(data)});
-  const patch = (path,data) => api(path,{method:'PATCH',body:JSON.stringify(data)});
+async function db(path,opt={}){
+  const r=await fetch(`${BASE}/${path}.json`,{
+    headers:{"Content-Type":"application/json"},...opt
+  });
+  if(!r.ok)throw Error(r.status);
+  return r.json();
+}
+const put=(p,v)=>db(p,{method:"PUT",body:JSON.stringify(v)});
 
-  function toast(msg){ const el=$('toast'); el.textContent=msg; el.classList.remove('hidden'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.add('hidden'),2400); }
-  function setConn(ok,msg){ const el=$('connectionBadge'); el.textContent=msg; el.className='badge '+(ok?'ok':'err'); }
+function toast(t){
+  const e=$("toast");
+  e.textContent=t;
+  e.classList.add("show");
+  setTimeout(()=>e.classList.remove("show"),2500);
+}
 
-  async function loadAll(){
-    try{
-      const data = await api('girls');
-      state.girls = data || {};
-      setConn(true,'● Общая база онлайн');
-      renderAll();
-    }catch(e){ setConn(false,'⚠ Нет связи с базой'); toast('Не удалось подключиться к Firebase'); console.error(e); }
-  }
+function draw(){
+  const s=$("girlSelect");
+  s.innerHTML='<option value="">Выбери своё имя</option>'+
+    Object.entries(girls).map(([id,g])=>
+      `<option value="${id}">${g.name||id}</option>`).join("");
+  s.value=active;
+  showGirl();
+  ranking();
+  attendance();
+}
 
-  function activeGirl(){ return state.activeId && state.girls[state.activeId] ? state.girls[state.activeId] : null; }
-
-  function renderAll(){ renderSelect(); renderActive(); renderRankings(); renderAttendance(); }
-
-  function renderSelect(){
-    const sel=$('girlSelect');
-    const entries=Object.entries(state.girls).sort((a,b)=>(a[1].name||'').localeCompare(b[1].name||'','ru'));
-    sel.innerHTML='<option value="">Выбери имя…</option>'+entries.map(([id,g])=>`<option value="${esc(id)}">${esc(g.name||'Без имени')}</option>`).join('');
-    if(state.activeId && state.girls[state.activeId]) sel.value=state.activeId;
+function showGirl(){
+  const g=girls[active];
+  if(!g){
+    $("activeGirlLine").classList.add("hidden");
+    return;
   }
 
-  function renderActive(){
-    const g=activeGirl(), line=$('activeGirlLine'), hint=$('weightHint'), tw=$('todayWeight');
-    const disabled=!g; $('weightInput').disabled=disabled; $('drinkInput').disabled=disabled; $('mlInput').disabled=disabled;
-    $('weightForm').querySelector('button').disabled=disabled; $('alcoholForm').querySelector('button').disabled=disabled;
-    if(!g){ line.classList.add('hidden'); hint.textContent='Сначала выбери себя.'; tw.textContent=''; return; }
-    line.classList.remove('hidden'); line.innerHTML=`Сегодня отчитывается: <strong>${esc(g.name)}</strong> 💅`;
-    const weights=g.weights||{}; const keys=Object.keys(weights).sort(); const lastKey=keys[keys.length-1];
-    hint.textContent= lastKey ? `Последняя запись: ${fmt(weights[lastKey])} кг (${lastKey.split('-').reverse().join('.')})` : 'Это будет твой первый вес.';
-    if(weights[today()]!=null) tw.textContent=`Сегодня уже записано: ${fmt(weights[today()])} кг`;
-    else tw.textContent='Сегодня вес ещё не записан.';
+  $("activeGirlLine").classList.remove("hidden");
+  $("activeGirl").textContent=g.name;
+
+  const w=g.weights||{};
+  const keys=Object.keys(w).sort();
+  const last=keys[keys.length-1];
+
+  $("weightHint").textContent=last
+    ?`Последняя запись: ${fmt(w[last])} кг`
+    :"Это будет первая запись";
+
+  $("todayWeight").textContent=w[today()]!=null
+    ?`Сегодня: ${fmt(w[today()])} кг`
+    :"Сегодня вес ещё не записан";
+}
+
+async function load(){
+  try{
+    girls=await db("girls")||{};
+    $("connectionBadge").textContent="🟢 Общая база подключена";
+    $("connectionBadge").className="badge ok";
+    draw();
+  }catch(e){
+    $("connectionBadge").textContent="⚠️ Нет связи с общей базой";
+    $("connectionBadge").className="badge err";
+  }
+}
+
+$("girlSelect").onchange=e=>{
+  active=e.target.value;
+  localStorage.setItem("girl",active);
+  showGirl();
+};
+
+$("addGirlBtn").onclick=async()=>{
+  const name=prompt("Имя участницы?");
+  if(!name)return;
+
+  const id="g"+Date.now();
+  const g={name:name.trim(),weights:{},alcohol:{}};
+
+  await put(`girls/${id}`,g);
+  girls[id]=g;
+  active=id;
+  localStorage.setItem("girl",id);
+  draw();
+};
+
+$("weightForm").onsubmit=async e=>{
+  e.preventDefault();
+  const g=girls[active];
+  if(!g)return toast("Сначала выбери себя");
+
+  const v=Number($("weightInput").value.replace(",","."));
+  if(!v)return;
+
+  const d=today();
+  const w=g.weights||{};
+  const prev=Object.keys(w).filter(x=>x<d).sort().pop();
+  const old=prev?Number(w[prev]):null;
+
+  await put(`girls/${active}/weights/${d}`,v);
+  g.weights=g.weights||{};
+  g.weights[d]=v;
+  $("weightInput").value="";
+  draw();
+
+  let h;
+  if(old===null){
+    h=`<div class="emoji">⚖️</div><h3>Старт записан!</h3>
+       <p>${fmt(v)} кг</p>`;
+  }else if(v<old){
+    h=`<div class="medal">🏅</div>
+       <h2>КРАСИВАЯ СУЧКА</h2>
+       <p>Минус ${fmt(old-v)} кг 🎉</p>`;
+  }else if(v>old){
+    h=`<div class="emoji">👀</div>
+       <h2>Та иди ты нах 😂</h2>
+       <p>Плюс ${fmt(v-old)} кг</p>`;
+  }else{
+    h=`<div class="emoji">😐</div>
+       <h2>Работаем усердней</h2>
+       <p>Вес без изменений</p>`;
   }
 
-  async function addGirl(){
-    const name=prompt('Как зовут участницу?'); if(!name || !name.trim()) return;
-    const id=slug(name); const girl={name:name.trim(),createdAt:Date.now(),weights:{},alcohol:{}};
-    try{ await put(`girls/${id}`,girl); state.girls[id]=girl; state.activeId=id; localStorage.setItem('ou_active_girl',id); renderAll(); toast('Участница добавлена ✨'); }
-    catch(e){ toast('Не удалось добавить. Проверь базу Firebase.'); }
-  }
+  $("modalContent").innerHTML=h;
+  $("resultModal").classList.remove("hidden");
+};
 
-  function previousWeight(g, beforeDate){
-    const w=g.weights||{}; const keys=Object.keys(w).filter(k=>k<beforeDate).sort(); if(!keys.length) return null; const k=keys[keys.length-1]; return Number(w[k]);
-  }
+$("alcoholForm").onsubmit=async e=>{
+  e.preventDefault();
+  const g=girls[active];
+  if(!g)return toast("Сначала выбери себя");
 
-  async function saveWeight(e){
-    e.preventDefault(); const g=activeGirl(); if(!g) return;
-    const val=Number(String($('weightInput').value).replace(',','.')); if(!val) return;
-    const d=today(); const prev=previousWeight(g,d);
-    try{
-      await put(`girls/${state.activeId}/weights/${d}`,val);
-      g.weights=g.weights||{}; g.weights[d]=val; $('weightInput').value=''; renderAll();
-      showWeightResult(g.name,val,prev);
-    }catch(err){ toast('Вес не сохранился. Проверь Firebase.'); }
-  }
+  const drink=$("drinkInput").value.trim();
+  const ml=Number($("mlInput").value);
+  if(!drink||!ml)return;
 
-  function showWeightResult(name,val,prev){
-    let html='';
-    if(prev==null){
-      html=`<div class="result"><div class="emoji">✨</div><h3>Старт записан!</h3><p>${esc(name)}, сегодня ${fmt(val)} кг. Теперь есть от чего плясать 😏</p></div>`;
-    } else {
-      const diff=val-prev;
-      if(diff<0){
-        html=`<div class="confetti"></div><div class="result"><div class="medal">🏅</div><h3>КРАСИВАЯ СУЧКА</h3><div class="delta good">−${fmt(Math.abs(diff))} кг</div><p>${esc(name)}, вот это работа! 🔥</p></div>`;
-      } else if(diff>0){
-        html=`<div class="result"><img class="victoria-img" src="assets/viktoria.jpg" alt="Виктория"><div class="emoji">👀</div><div class="big-quote">«Та иди ты нах» 😂</div><div class="delta bad">+${fmt(diff)} кг</div><p>Виктория всё увидела.</p></div>`;
-      } else {
-        html=`<div class="result"><div class="emoji">😐</div><h3>Работаем усердней</h3><div class="delta">0,0 кг</div><p>Вес стоит. Завтра ждём минус 😏</p></div>`;
-      }
-    }
-    $('modalContent').innerHTML=html; $('resultModal').classList.remove('hidden');
-  }
+  const d=today(),id=Date.now();
+  const item={drink,ml};
 
-  async function saveAlcohol(e){
-    e.preventDefault(); const g=activeGirl(); if(!g) return;
-    const drink=$('drinkInput').value.trim(); const ml=Number($('mlInput').value); if(!drink||!ml) return;
-    const d=today(); const id=Date.now().toString(); const item={drink,ml,ts:Date.now()};
-    try{
-      await put(`girls/${state.activeId}/alcohol/${d}/${id}`,item);
-      g.alcohol=g.alcohol||{}; g.alcohol[d]=g.alcohol[d]||{}; g.alcohol[d][id]=item;
-      $('drinkInput').value=''; $('mlInput').value=''; renderRankings(); toast(`Записано: ${ml} мл. Барная бухгалтерия довольна 😂`);
-    }catch(err){ toast('Не удалось сохранить алкоголь.'); }
-  }
+  await put(`girls/${active}/alcohol/${d}/${id}`,item);
 
-  function renderRankings(){
-    const start=monday(), end=new Date(start); end.setDate(end.getDate()+6);
-    $('weekLabel').textContent=`${fmtDate(start)} — ${fmtDate(end)}`;
-    const s=dateKey(start), e=dateKey(end);
-    const wr=[], ar=[];
-    for(const [id,g] of Object.entries(state.girls)){
-      const weights=g.weights||{}; const wk=Object.keys(weights).filter(k=>k>=s&&k<=e).sort();
-      if(wk.length){ const first=Number(weights[wk[0]]), last=Number(weights[wk[wk.length-1]]), delta=last-first; wr.push({name:g.name,delta,first,last,count:wk.length}); }
-      let total=0, drinks=0; const alc=g.alcohol||{};
-      Object.keys(alc).filter(k=>k>=s&&k<=e).forEach(k=>Object.values(alc[k]||{}).forEach(it=>{total+=Number(it.ml||0);drinks++;}));
-      if(total>0) ar.push({name:g.name,total,drinks});
-    }
-    wr.sort((a,b)=>a.delta-b.delta);
-    $('weightRanking').classList.toggle('empty',!wr.length);
-    $('weightRanking').innerHTML=wr.length?wr.map((r,i)=>`<div class="rank-row"><div class="rank-pos">${i===0?'👑':i+1}</div><div><div class="rank-name">${esc(r.name)}</div><div class="rank-sub">${fmt(r.first)} → ${fmt(r.last)} кг · записей: ${r.count}</div></div><div class="rank-score ${r.delta<0?'good':r.delta>0?'bad':''}">${r.delta>0?'+':''}${fmt(r.delta)} кг</div></div>`).join(''):'Пока нет данных этой недели.';
-    ar.sort((a,b)=>b.total-a.total);
-    $('alcoholRanking').classList.toggle('empty',!ar.length);
-    $('alcoholRanking').innerHTML=ar.length?ar.map((r,i)=>`<div class="rank-row"><div class="rank-pos">${i===0?'🍾':i+1}</div><div><div class="rank-name">${esc(r.name)}</div><div class="rank-sub">записей: ${r.drinks}</div></div><div class="rank-score">${Math.round(r.total)} мл</div></div>`).join(''):'Пока все приличные 😇';
-  }
+  g.alcohol=g.alcohol||{};
+  g.alcohol[d]=g.alcohol[d]||{};
+  g.alcohol[d][id]=item;
 
-  function renderAttendance(){
-    const d=today(); const rows=Object.values(state.girls).sort((a,b)=>(a.name||'').localeCompare(b.name||'','ru'));
-    const el=$('attendance'); el.classList.toggle('empty',!rows.length);
-    el.innerHTML=rows.length?rows.map(g=>{ const has=g.weights&&g.weights[d]!=null; return `<div class="att-row"><div class="att-name">${esc(g.name)}</div><div class="att-status ${has?'done':'miss'}">${has?`✅ ${fmt(g.weights[d])} кг`:'Работаем усердней 😏'}</div></div>`; }).join(''):'Добавьте участниц.';
-  }
+  $("drinkInput").value="";
+  $("mlInput").value="";
+  ranking();
+  toast(`Записано ${ml} мл 😂`);
+};
 
-  $('girlSelect').addEventListener('change',e=>{ state.activeId=e.target.value; localStorage.setItem('ou_active_girl',state.activeId); renderActive(); });
-  $('addGirlBtn').addEventListener('click',addGirl);
-  $('weightForm').addEventListener('submit',saveWeight);
-  $('alcoholForm').addEventListener('submit',saveAlcohol);
-  document.querySelectorAll('[data-close]').forEach(x=>x.addEventListener('click',()=>$('resultModal').classList.add('hidden')));
+function week(){
+  const x=new Date(),day=x.getDay()||7;
+  x.setHours(0,0,0,0);
+  x.setDate(x.getDate()-day+1);
+  const y=new Date(x);
+  y.setDate(y.getDate()+6);
+  return[
+    x.toLocaleDateString("sv-SE"),
+    y.toLocaleDateString("sv-SE")
+  ];
+}
 
-  loadAll();
-  setInterval(loadAll,30000);
-})();
+function ranking(){
+  const [a,b]=week();
+  $("weekLabel").textContent=`${a} — ${b}`;
+
+  let wr=[],ar=[];
+
+  Object.values(girls).forEach(g=>{
+    const w=g.weights||{};
+    const k=Object.keys(w).filter(d=>d>=a&&d<=b).sort();
+
+    if(k.length>1)
+      wr.push({
+        name:g.name,
+        diff:Number(w[k[k.length-1]])-Number(w[k[0]])
+      });
+
+    let ml=0;
+    const al=g.alcohol||{};
+
+    Object.keys(al).filter(d=>d>=a&&d<=b).forEach(d=>
+      Object.values(al[d]||{}).forEach(x=>ml+=Number(x.ml||0))
+    );
+
+    if(ml)ar.push({name:g.name,ml});
+  });
+
+  wr.sort((x,y)=>x.diff-y.diff);
+  ar.sort((x,y)=>y.ml-x.ml);
+
+  $("weightRanking").innerHTML=wr.length
+    ?wr.map((x,i)=>`<div class="rank-row">
+       ${i===0?"👑":i+1+"."} <b>${x.name}</b> —
+       ${x.diff>0?"+":""}${fmt(x.diff)} кг</div>`).join("")
+    :'<div class="empty">Пока нет результатов</div>';
+
+  $("alcoholRanking").innerHTML=ar.length
+    ?ar.map((x,i)=>`<div class="rank-row">
+       ${i===0?"🍾👑":i+1+"."} <b>${x.name}</b> —
+       ${x.ml} мл</div>`).join("")
+    :'<div class="empty">Пока все приличные 😇</div>';
+}
+
+function attendance(){
+  const d=today();
+
+  $("attendance").innerHTML=Object.values(girls).map(g=>{
+    const w=g.weights||{};
+    return `<div class="att-row">
+      ${w[d]!=null?"✅":"👀"} <b>${g.name}</b> —
+      ${w[d]!=null?fmt(w[d])+" кг":"Работаем усердней — вес не внесён"}
+    </div>`;
+  }).join("");
+}
+
+document.querySelectorAll("[data-close]").forEach(b=>
+  b.onclick=()=>$("resultModal").classList.add("hidden")
+);
+
+load();
+setInterval(load,30000);
