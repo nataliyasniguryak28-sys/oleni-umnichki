@@ -1,163 +1,40 @@
+
 <!doctype html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Олени и Умнички — общая группа</title>
+<title>Олени и Умнички</title>
+
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:linear-gradient(135deg,#fff4ea,#f2f7ff);color:#222}
-.wrap{max-width:980px;margin:auto;padding:16px}
-h1{text-align:center;margin:6px 0 2px;font-size:30px}
-.sub{text-align:center;color:#777;margin-bottom:12px}
-.status{text-align:center;font-size:13px;margin:8px 0 14px;color:#666}
-.people{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:12px 0}
-.person{border:2px solid transparent;background:#fff;padding:10px 14px;border-radius:999px;font-size:16px;box-shadow:0 3px 10px #0001}
-.person.selected{border-color:#333;transform:scale(1.05)}
-.actions{display:flex;justify-content:center;gap:10px;margin:14px 0 18px}
-.actions button{border:0;border-radius:15px;padding:13px 16px;font-size:16px;box-shadow:0 4px 12px #0002}
-.deerBtn{background:#ffd6c5}.smartBtn{background:#d9f3dd}
-.board{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.col{background:#fff;border-radius:22px;padding:12px;min-height:350px;box-shadow:0 6px 20px #0001}
-.deer{border-top:7px solid #e9a17f}.smart{border-top:7px solid #91c99a}
-h2{text-align:center;margin:6px 0 13px;font-size:22px}
-.item{padding:10px;margin:8px 0;border-radius:13px;font-weight:700}
-.deer .item{background:#fff0e9}.smart .item{background:#edf8ef}
-.meta{font-size:12px;font-weight:500;color:#777;margin-top:3px}
-.footer{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:14px}
-.footer button{border:0;background:#eee8df;border-radius:12px;padding:10px 12px}
-.toast{position:fixed;top:18px;left:50%;transform:translate(-50%,-20px);opacity:0;background:#222;color:#fff;padding:14px 18px;border-radius:15px;font-weight:700;transition:.25s;z-index:99;text-align:center;max-width:90%}
-.toast.show{opacity:1;transform:translate(-50%,0)}
-.modal{position:fixed;inset:0;background:#0006;display:none;align-items:center;justify-content:center;padding:18px;z-index:90}
-.modal.show{display:flex}
-.card{background:#fff;border-radius:20px;padding:18px;width:min(520px,100%);max-height:80vh;overflow:auto}
-.card h3{margin-top:0}
-.rank{padding:9px;border-bottom:1px solid #eee}
-@media(max-width:600px){.board{gap:8px}.col{padding:9px}.item{font-size:14px}.actions button{font-size:14px;padding:12px}.person{font-size:15px}}
-</style>
-</head>
-<body>
-<div class="toast" id="toast"></div>
-<div class="modal" id="modal"><div class="card"><h3 id="modalTitle"></h3><div id="modalBody"></div><br><button onclick="closeModal()">Закрыть</button></div></div>
 
-<div class="wrap">
-<h1>🦌 Олени и 😇 Умнички</h1>
-<div class="sub">Наша общая доска почёта и позора 😂</div>
-<div class="status" id="status">Подключение к общей базе…</div>
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;
+  background:linear-gradient(135deg,#fff4ea,#f2f7ff);
+  color:#222;
+}
 
-<div class="people" id="people"></div>
+.wrap{
+  max-width:760px;
+  margin:auto;
+  padding:16px;
+}
 
-<div class="actions">
-<button class="deerBtn" onclick="mark('deer')">＋ 🦌 В олени</button>
-<button class="smartBtn" onclick="mark('smart')">− 😇 В умнички</button>
-</div>
+h1{
+  text-align:center;
+  font-size:30px;
+  margin:8px 0 2px;
+}
 
-<div class="board">
-<section class="col deer"><h2>🦌 Олени дня</h2><div id="deerList"></div></section>
-<section class="col smart"><h2>😇 Умнички дня</h2><div id="smartList"></div></section>
-</div>
+.sub{
+  text-align:center;
+  color:#777;
+  margin-bottom:10px;
+}
 
-<div class="footer">
-<button onclick="showRating()">🏆 Общий рейтинг</button>
-<button onclick="showHistory()">📅 История</button>
-<button onclick="showTodayWinners()">👑 Итоги дня</button>
-</div>
-</div>
-
-<script src="config.js"></script>
-<script>
-const PEOPLE=["Римма","Вика","Яна","Наташа","Оля","Люда","Валюшка","Таня"];
-let selected=null;
-let data={events:{}};
-
-const peopleEl=document.getElementById("people");
-PEOPLE.forEach(n=>{
- const b=document.createElement("button");
- b.className="person"; b.textContent=n;
- b.onclick=()=>{selected=n;document.querySelectorAll(".person").forEach(x=>x.classList.remove("selected"));b.classList.add("selected")};
- peopleEl.appendChild(b);
-});
-
-function dayKey(){
- const d=new Date();
- return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
-}
-function toast(t){let x=document.getElementById("toast");x.textContent=t;x.classList.add("show");clearTimeout(window.tt);window.tt=setTimeout(()=>x.classList.remove("show"),1800)}
-function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
-function dbUrl(path=""){
- if(!window.DATABASE_URL || window.DATABASE_URL.includes("PASTE")) throw new Error("DATABASE_URL not configured");
- return window.DATABASE_URL.replace(/\/$/,"")+"/"+path+".json";
-}
-async function getAll(){
- const r=await fetch(dbUrl("events")); if(!r.ok) throw new Error("read failed");
- data.events=await r.json()||{}; render();
- document.getElementById("status").textContent="🟢 Общая база подключена";
-}
-async function addEvent(person,type){
- const event={person,type,ts:Date.now(),day:dayKey()};
- const r=await fetch(dbUrl("events"),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(event)});
- if(!r.ok) throw new Error("write failed");
- await getAll();
-}
-async function mark(type){
- if(!selected){toast("Сначала выбери имя 😂");return}
- try{
-   await addEvent(selected,type);
-   toast(type==="deer" ? `${selected}: 🦌 рога вручены! 😂` : `${selected}: 😇 умничка дня! 👏`);
- }catch(e){toast("Нет связи с общей базой 😢")}
-}
-function eventsArray(){return Object.entries(data.events||{}).map(([id,e])=>({id,...e})).sort((a,b)=>a.ts-b.ts)}
-function latestForToday(){
- const map={}; eventsArray().filter(e=>e.day===dayKey()).forEach(e=>map[e.person]=e); return map;
-}
-function render(){
- const today=latestForToday(), d=document.getElementById("deerList"), s=document.getElementById("smartList");
- d.innerHTML="";s.innerHTML="";
- PEOPLE.forEach(n=>{
-   const e=today[n]; if(!e)return;
-   const el=document.createElement("div"); el.className="item";
-   const time=new Date(e.ts).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"});
-   el.innerHTML=`${esc(n)}<div class="meta">${time}</div>`;
-   (e.type==="deer"?d:s).appendChild(el);
- });
- if(!d.children.length)d.innerHTML='<div style="text-align:center;color:#aaa;padding:25px">Сегодня все приличные 😇</div>';
- if(!s.children.length)s.innerHTML='<div style="text-align:center;color:#aaa;padding:25px">Ждём подвигов 😄</div>';
-}
-function scoreAll(){
- const score={}; PEOPLE.forEach(n=>score[n]={deer:0,smart:0});
- const byDay={};
- eventsArray().forEach(e=>{
-   byDay[e.day]??={}; byDay[e.day][e.person]=e;
- });
- Object.values(byDay).forEach(day=>{
-   Object.values(day).forEach(e=>{if(score[e.person])score[e.person][e.type]++});
- });
- return score;
-}
-function openModal(title,html){document.getElementById("modalTitle").textContent=title;document.getElementById("modalBody").innerHTML=html;document.getElementById("modal").classList.add("show")}
-function closeModal(){document.getElementById("modal").classList.remove("show")}
-function showRating(){
- const sc=scoreAll();
- const arr=PEOPLE.map(n=>({n,...sc[n]})).sort((a,b)=>(b.deer-b.smart)-(a.deer-a.smart));
- openModal("🏆 Общий рейтинг",arr.map((x,i)=>`<div class="rank"><b>${i+1}. ${esc(x.n)}</b> — 🦌 ${x.deer} | 😇 ${x.smart}</div>`).join(""));
-}
-function showTodayWinners(){
- const today=latestForToday(), deer=[],smart=[];
- Object.values(today).forEach(e=>(e.type==="deer"?deer:smart).push(e.person));
- openModal("👑 Итоги дня",`<p><b>🦌 Олени дня:</b> ${deer.length?deer.map(esc).join(", "):"никого 🎉"}</p><p><b>😇 Умнички дня:</b> ${smart.length?smart.map(esc).join(", "):"пока никого 😄"}</p>`);
-}
-function showHistory(){
- const by={};
- eventsArray().forEach(e=>{by[e.day]??={};by[e.day][e.person]=e});
- const days=Object.keys(by).sort().reverse();
- const html=days.map(day=>{
-   const es=Object.values(by[day]), deer=es.filter(e=>e.type==="deer").map(e=>e.person), smart=es.filter(e=>e.type==="smart").map(e=>e.person);
-   return `<div class="rank"><b>${day}</b><br>🦌 ${deer.length?deer.map(esc).join(", "):"—"}<br>😇 ${smart.length?smart.map(esc).join(", "):"—"}</div>`;
- }).join("")||"Истории пока нет";
- openModal("📅 История",html);
-}
-async function poll(){try{await getAll()}catch(e){document.getElementById("status").textContent="🔴 База не подключена";} setTimeout(poll,5000)}
-poll();
-</script>
-</body>
-</html>
+.status{
+  text-align:center;
+  font-size:14px;
+  margin
