@@ -29,6 +29,10 @@ button{border:0;font-weight:700}
 .medal,.emoji{font-size:55px}
 .empty{text-align:center;color:#999;padding:10px}
 @media(max-width:600px){.grid{grid-template-columns:1fr}}
+  .victoria-img{width:160px!important;height:200px!important;object-fit:cover!important;object-position:center top!important;border-radius:18px;display:block;margin:8px auto;}
+.character-wrap{position:relative;min-height:220px;display:flex;align-items:center;justify-content:center;}
+.fainting{animation:faint 1.15s ease-in forwards;transform-origin:50% 100%;}
+@keyframes faint{0%{transform:rotate(0)}55%{transform:rotate(24deg)}100%{transform:rotate(88deg) translate(25px,35px)}}
 </style>
 </head>
 
