@@ -277,7 +277,7 @@
             <div class="speech">${esc(phrase)}</div>
             <div class="character-wrap">
               <div class="fireworks"><span>🎆</span><span>✨</span><span>🎇</span><span>💥</span></div>
-              <img class="victoria-img" src="${VICTORIA_IMG}" alt="Фото">
+              <img class="victoria-img jumping" src="${VICTORIA_IMG}">
             </div>
             <div class="medal">🏅</div>
             <h3>КРАСИВАЯ СУЧКА</h3>
