@@ -33,6 +33,39 @@ button{border:0;font-weight:700}
 .character-wrap{position:relative;min-height:220px;display:flex;align-items:center;justify-content:center;}
 .fainting{animation:faint 1.15s ease-in forwards;transform-origin:50% 100%;}
 @keyframes faint{0%{transform:rotate(0)}55%{transform:rotate(24deg)}100%{transform:rotate(88deg) translate(25px,35px)}}
+  .character-wrap.eyes-pop::after{
+  content:"👀";
+  position:absolute;
+  top:25px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:62px;
+  animation:eyesPop .7s ease-out;
+  z-index:5;
+}
+@keyframes eyesPop{
+  0%{transform:translateX(-50%) scale(.2);opacity:0}
+  55%{transform:translateX(-50%) scale(1.6);opacity:1}
+  100%{transform:translateX(-50%) scale(1);opacity:1}
+}
+
+.head-grab{
+  animation:headGrab .9s ease-in-out 3;
+}
+.character-wrap.head-shock::after{
+  content:"🤦‍♀️";
+  position:absolute;
+  top:18px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:58px;
+  z-index:5;
+}
+@keyframes headGrab{
+  0%,100%{transform:rotate(0)}
+  25%{transform:rotate(-7deg)}
+  75%{transform:rotate(7deg)}
+}
 </style>
 </head>
 
