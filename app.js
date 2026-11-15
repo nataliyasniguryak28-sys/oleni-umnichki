@@ -1,6 +1,7 @@
 (() => {
   const BASE = (window.DATABASE_URL || '').replace(/\/+$/, '');
   const $ = id => document.getElementById(id);
+  const GROUP_ID = "main";
   const firebaseConfig = {
   apiKey: "AIzaSyA_G8EJ1gRRmM6Gxcy3yAQ0sT1EvXV_JmE",
   authDomain: "oleniumnichki.firebaseapp.com",
@@ -606,7 +607,8 @@ const MINUS_PHRASES = [
       }));
 
     const token = await user.getIdToken();
-    const url = `${firebaseConfig.databaseURL}/${path}.json?auth=${encodeURIComponent(token)}`;
+    const groupPath = GROUP_ID === "main" ? path : `groups/${GROUP_ID}/${path}`;
+    const url = `${firebaseConfig.databaseURL}/${groupPath}.json?auth=${encodeURIComponent(token)}`;
 
     const res = await fetch(url, {
       headers: {'Content-Type': 'application/json'},
