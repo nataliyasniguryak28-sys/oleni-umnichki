@@ -729,11 +729,12 @@ if (photo) {
   }
 
   function showWeightResult(name, val, prev){
+    const girl = activeGirl();
+const girlImage = girl?.photoURL || '';
     let html = '';
 
     if(prev == null){
-const girl = activeGirl();
-const girlImage = girl?.photoURL || VICTORIA_IMG;
+
 
       html = `
         <div class="result">
@@ -751,7 +752,7 @@ const girlImage = girl?.photoURL || VICTORIA_IMG;
             <div class="speech">${esc(phrase)}</div>
             <div class="character-wrap">
               <div class="fireworks"><span>🎆</span><span>✨</span><span>🎇</span><span>💥</span></div>
-              <img class="victoria-img jumping" src="${VICTORIA_IMG}">
+              <img class="victoria-img jumping" src="${girlImage}">
             </div>
             <div class="medal">🏅</div>
             <h3>КРАСИВАЯ СУЧКА</h3>
@@ -763,7 +764,7 @@ const girlImage = girl?.photoURL || VICTORIA_IMG;
           <div class="result">
             <div class="speech">${esc(phrase)}</div>
             <div class="character-wrap">
-              <img class="victoria-img fainting" src="${VICTORIA_IMG}" alt="Фото">
+              <img class="victoria-img fainting" src="${girlImage}" alt="Фото">
             </div>
             <div class="emoji">😵‍💫</div>
             <p>Плюс ${fmt(diff)} кг.</p>
