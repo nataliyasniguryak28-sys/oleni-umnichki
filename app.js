@@ -1,7 +1,21 @@
 (() => {
   const BASE = (window.DATABASE_URL || '').replace(/\/+$/, '');
   const $ = id => document.getElementById(id);
-
+  const firebaseConfig = {
+  apiKey: "AIzaSyA_G8EJ1gRRmM6Gxcy3yAQ0sT1EvXV_JmE",
+  authDomain: "oleniumnichki.firebaseapp.com",
+  databaseURL: "https://oleniumnichki-default-rtdb.firebaseio.com",
+  projectId: "oleniumnichki"
+};
+const firebaseApp = firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+  auth.signInAnonymously()
+  .then(() => {
+    console.log('Вход без пароля выполнен');
+  })
+  .catch(error => {
+    console.error('Ошибка входа:', error);
+  });
   const DEFAULT_GIRLS = ['Римма','Вика','Яна','Наташа','Оля','Люда','Валюшка','Таня'];
 
   const VICTORIA_IMG = "";
