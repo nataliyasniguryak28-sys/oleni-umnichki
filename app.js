@@ -4,7 +4,7 @@
 
   const DEFAULT_GIRLS = ['Римма','Вика','Яна','Наташа','Оля','Люда','Валюшка','Таня'];
 
-  const VICTORIA_IMG = "girl.jpg";
+  const VICTORIA_IMG = "";
 const PHOTO_MAX_SIZE = 15 * 1024 * 1024;
 const PHOTO_ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
   const PHOTO_SIZE = 300;
@@ -752,7 +752,7 @@ const girlImage = girl?.photoURL || '';
             <div class="speech">${esc(phrase)}</div>
             <div class="character-wrap">
               <div class="fireworks"><span>🎆</span><span>✨</span><span>🎇</span><span>💥</span></div>
-              <img class="victoria-img jumping" src="${girlImage}">
+              ${girlImage ? `<img class="victoria-img jumping" src="${girlImage}">` : '<div class="emoji">👩</div>'}
             </div>
             <div class="medal">🏅</div>
             <h3>КРАСИВАЯ СУЧКА</h3>
@@ -764,7 +764,9 @@ const girlImage = girl?.photoURL || '';
           <div class="result">
             <div class="speech">${esc(phrase)}</div>
             <div class="character-wrap">
-              <img class="victoria-img fainting" src="${girlImage}" alt="Фото">
+              
+${girlImage ? `<img class="victoria-img fainting" src="${girlImage}" alt="Фото">` : '<div class="emoji">👩</div>'}
+
             </div>
             <div class="emoji">😵‍💫</div>
             <p>Плюс ${fmt(diff)} кг.</p>
