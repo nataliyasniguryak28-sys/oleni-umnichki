@@ -53,13 +53,15 @@ const auth = firebase.auth();
     message.textContent = '⚠️ Не удалось отправить письмо: ' + error.code;
   }
 });
-  auth.signInAnonymously()
-  .then(() => {
-    console.log('Вход без пароля выполнен');
-  })
-  .catch(error => {
-    console.error('Ошибка входа:', error);
-  });
+  auth.onAuthStateChanged(user => {
+  if (!user) {
+    auth.signInAnonymously()
+      .then(() => console.log('Временный вход выполнен'))
+      .catch(error => console.error('Ошибка входа:', error));
+  } else {
+    console.log('Пользователь уже вошёл:', user.uid);
+  }
+});
   const DEFAULT_GIRLS = ['Римма','Вика','Яна','Наташа','Оля','Люда','Валюшка','Таня'];
 
   const VICTORIA_IMG = "";
