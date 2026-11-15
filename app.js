@@ -7,7 +7,8 @@
   const VICTORIA_IMG = "girl.jpg";
 const PHOTO_MAX_SIZE = 2 * 1024 * 1024;
 const PHOTO_ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-  
+  const PHOTO_SIZE = 300;
+const PHOTO_QUALITY = 0.7;
 const PLUS_PHRASES = [
   "А могла бы лучше🙄","Ой, девки, гляньте, наша худеющая опять нажралась!🤣",
 "Ты шо, милая, холодильник вместе с дверцей сожрала?🐷",
