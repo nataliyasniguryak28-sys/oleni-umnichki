@@ -8,7 +8,46 @@
 const PHOTO_MAX_SIZE = 2 * 1024 * 1024;
 const PHOTO_ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
   const PHOTO_SIZE = 300;
-const PHOTO_QUALITY = 0.7;
+const PHOTO_QUALITY = 0.7; 
+  
+function prepareGirlPhoto(file) {
+  return new Promise((resolve, reject) => {
+    if (!PHOTO_ALLOWED_TYPES.includes(file.type)) {
+      reject(new Error('Выбери JPG, PNG или WebP'));
+      return;
+    }
+
+    if (file.size > PHOTO_MAX_SIZE) {
+      reject(new Error('Фото должно быть меньше 2 МБ'));
+      return;
+    }
+
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+
+    img.onload = () => {
+      const scale = Math.min(1, PHOTO_SIZE / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(img.width * scale));
+      canvas.height = Math.max(1, Math.round(img.height * scale));
+
+      canvas.getContext('2d').drawImage(
+        img, 0, 0, canvas.width, canvas.height
+      );
+
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL('image/jpeg', PHOTO_QUALITY));
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Не удалось открыть фото'));
+    };
+
+    img.src = url;
+  });
+}
+
 const PLUS_PHRASES = [
   "А могла бы лучше🙄","Ой, девки, гляньте, наша худеющая опять нажралась!🤣",
 "Ты шо, милая, холодильник вместе с дверцей сожрала?🐷",
@@ -693,6 +732,9 @@ if (photo) {
     let html = '';
 
     if(prev == null){
+const girl = activeGirl();
+const girlImage = girl?.photoURL || VICTORIA_IMG;
+
       html = `
         <div class="result">
           <div class="emoji">⚖️</div>
@@ -870,6 +912,32 @@ if (photo) {
     localStorage.setItem('ou_active_girl', state.activeId);
     renderActive();
   });
+
+$('girlPhotoInput').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const g = activeGirl();
+  if (!g) {
+    toast('Сначала выбери своё имя');
+    e.target.value = '';
+    return;
+  }
+
+  try {
+    const photo = await prepareGirlPhoto(file);
+    await put(`girls/${state.activeId}/photoURL`, photo);
+
+    g.photoURL = photo;
+    renderActive();
+    toast('📸 Фото сохранено!');
+  } catch (err) {
+    console.error(err);
+    toast(err.message || 'Ошибка загрузки фото');
+  }
+
+  e.target.value = '';
+});
 
   $('addGirlBtn').addEventListener('click', addGirl);
   $('weightForm').addEventListener('submit', saveWeight);
