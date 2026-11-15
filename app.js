@@ -9,6 +9,28 @@
 };
 const firebaseApp = firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
+  document.getElementById('sendLoginLink').addEventListener('click', async () => {
+  const email = document.getElementById('loginEmail').value.trim();
+  const message = document.getElementById('loginMessage');
+
+  if (!email) {
+    message.textContent = '⚠️ Введи электронную почту';
+    return;
+  }
+
+  try {
+    await auth.sendSignInLinkToEmail(email, {
+      url: window.location.origin + window.location.pathname,
+      handleCodeInApp: true
+    });
+
+    localStorage.setItem('ou_email_for_signin', email);
+    message.textContent = '💌 Проверь почту! Мы отправили ссылку для входа.';
+  } catch (error) {
+    console.error(error);
+    message.textContent = '⚠️ Не удалось отправить письмо: ' + error.code;
+  }
+});
   auth.signInAnonymously()
   .then(() => {
     console.log('Вход без пароля выполнен');
