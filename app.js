@@ -9,6 +9,13 @@
 };
 const firebaseApp = firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
+  auth.signInAnonymously()
+  .then(() => {
+    console.log('Вход без пароля выполнен');
+  })
+  .catch(error => {
+    console.error('Ошибка входа:', error);
+  });
   const DEFAULT_GIRLS = ['Римма','Вика','Яна','Наташа','Оля','Люда','Валюшка','Таня'];
 
   const VICTORIA_IMG = "";
