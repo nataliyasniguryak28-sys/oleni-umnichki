@@ -7,7 +7,8 @@
   databaseURL: "https://oleniumnichki-default-rtdb.firebaseio.com",
   projectId: "oleniumnichki"
 };
-
+const firebaseApp = firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
   const DEFAULT_GIRLS = ['Римма','Вика','Яна','Наташа','Оля','Люда','Валюшка','Таня'];
 
   const VICTORIA_IMG = "";
