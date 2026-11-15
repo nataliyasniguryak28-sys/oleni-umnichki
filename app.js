@@ -9,6 +9,28 @@
 };
 const firebaseApp = firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
+  if (auth.isSignInWithEmailLink(window.location.href)) {
+  const email = localStorage.getItem('ou_email_for_signin');
+
+  if (email) {
+    auth.signInWithEmailLink(email, window.location.href)
+      .then(() => {
+        localStorage.removeItem('ou_email_for_signin');
+        window.history.replaceState(
+          {},
+          document.title,
+          window.location.pathname
+        );
+        alert('✅ Вход по почте выполнен!');
+      })
+      .catch(error => {
+        console.error(error);
+        alert('Ошибка входа: ' + error.code);
+      });
+  } else {
+    alert('Для завершения входа открой ссылку на том же телефоне, где запрашивала письмо.');
+  }
+  }
   document.getElementById('sendLoginLink').addEventListener('click', async () => {
   const email = document.getElementById('loginEmail').value.trim();
   const message = document.getElementById('loginMessage');
