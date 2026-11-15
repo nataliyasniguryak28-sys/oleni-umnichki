@@ -132,6 +132,22 @@ button{border:0;font-weight:700}
 
   <div class="title">Сегодня отчитывается: <span id="activeGirl"></span></div>
 
+<div style="text-align:center; margin:15px 0;">
+  <img id="girlPhotoPreview"
+       src="girl.jpg"
+       alt="Фото участницы"
+       style="width:130px;height:130px;object-fit:cover;border-radius:50%;border:4px solid #ff69b4;">
+
+  <div style="margin-top:10px;">
+    <label for="girlPhotoInput" style="display:inline-block;padding:12px;background:#ff69b4;color:white;border-radius:12px;cursor:pointer;">
+      📸 Загрузить моё фото
+    </label>
+    <input type="file" id="girlPhotoInput"
+           accept="image/jpeg,image/png,image/webp"
+           style="display:none;">
+  </div>
+</div>
+
   <div id="todayWeight" class="today">Сегодня вес ещё не записан</div>
   <div id="weightHint" class="hint"></div>
 
