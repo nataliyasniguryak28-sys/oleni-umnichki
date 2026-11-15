@@ -545,15 +545,32 @@ const MINUS_PHRASES = [
     day:'2-digit', month:'2-digit'
   }).format(d);
 
+  
   async function api(path, options={}) {
-    if (!BASE) throw new Error('Нет DATABASE_URL');
-    const res = await fetch(`${BASE}/${path}.json`, {
-      headers:{'Content-Type':'application/json'},
+    const user = auth.currentUser ||
+      (await new Promise((resolve, reject) => {
+        const unsubscribe = auth.onAuthStateChanged(
+          user => {
+            unsubscribe();
+            if (user) resolve(user);
+            else reject(new Error('Вход не выполнен'));
+          },
+          reject
+        );
+      }));
+
+    const token = await user.getIdToken();
+    const url = `${firebaseConfig.databaseURL}/${path}.json?auth=${encodeURIComponent(token)}`;
+
+    const res = await fetch(url, {
+      headers: {'Content-Type': 'application/json'},
       ...options
     });
+
     if (!res.ok) throw new Error(`Firebase: ${res.status}`);
     return res.json();
   }
+
 
   const put = (path, data) => api(path, {
     method:'PUT',
