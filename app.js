@@ -5,7 +5,7 @@
   const DEFAULT_GIRLS = ['Римма','Вика','Яна','Наташа','Оля','Люда','Валюшка','Таня'];
 
   const VICTORIA_IMG = "girl.jpg";
-const PHOTO_MAX_SIZE = 2 * 1024 * 1024;
+const PHOTO_MAX_SIZE = 15 * 1024 * 1024;
 const PHOTO_ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
   const PHOTO_SIZE = 300;
 const PHOTO_QUALITY = 0.7; 
