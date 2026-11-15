@@ -5,7 +5,8 @@
   const DEFAULT_GIRLS = ['Римма','Вика','Яна','Наташа','Оля','Люда','Валюшка','Таня'];
 
   const VICTORIA_IMG = "girl.jpg";
-
+const PHOTO_MAX_SIZE = 2 * 1024 * 1024;
+const PHOTO_ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
   
 const PLUS_PHRASES = [
   "А могла бы лучше🙄","Ой, девки, гляньте, наша худеющая опять нажралась!🤣",
@@ -597,7 +598,10 @@ const MINUS_PHRASES = [
 
     line.classList.remove('hidden');
     $('activeGirl').textContent = g.name || '';
-
+const photo = document.getElementById('girlPhotoPreview');
+if (photo) {
+  photo.src = g.photoURL || VICTORIA_IMG;
+}
     const weights = g.weights || {};
     const keys = Object.keys(weights).sort();
     const lastKey = keys[keys.length - 1];
