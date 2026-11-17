@@ -61,6 +61,7 @@ const auth = firebase.auth();
       .catch(error => console.error('Ошибка входа:', error));
   } else {
     console.log('Пользователь уже вошёл:', user.uid);
+    if (!user.isAnonymous) document.getElementById('loginBox')?.classList.add('hidden');
   }
 });
   const DEFAULT_GIRLS = ['Римма','Вика','Яна','Наташа','Оля','Люда','Валюшка','Таня'];
